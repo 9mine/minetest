@@ -37,13 +37,15 @@ std::string translate_password(const std::string &name,
 	if (password.length() == 0)
 		return "";
 
+  /*
 	std::string slt = name + password;
 	SHA1 sha1;
 	sha1.addBytes(slt.c_str(), slt.length());
 	unsigned char *digest = sha1.getDigest();
 	std::string pwd = base64_encode(digest, 20);
 	free(digest);
-	return pwd;
+  */
+	return password;
 }
 
 // Call lower level SRP code to generate a verifier with the
