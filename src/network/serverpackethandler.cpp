@@ -248,6 +248,7 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 		if (default_password.length() == 0) {
 			//auth_mechs |= AUTH_MECHANISM_FIRST_SRP;
       auth_mechs |= AUTH_MECHANISM_PLAIN;
+			client->create_player_on_auth_success = true;
 		} else {
 			// Take care of default passwords.
 			client->enc_pwd = get_encoded_srp_verifier(playerName, default_password);
@@ -1745,46 +1746,12 @@ void Server::handleCommand_AuthPlain(NetworkPacket* pkt)
 
 	verbosestream << "Server: Received TOCLIENT_AUTH_PLAIN." << std::endl;
 
-  /*
-	if (!((cstate == CS_HelloSent) || (cstate == CS_Active))) {
-		actionstream << "Server: got SRP _M packet in wrong state "
-			<< cstate << " from " << addr_s
-			<< ". Ignoring." << std::endl;
-		return;
-	}
-  */
-
-  /*
-	if (client->chosen_mech != AUTH_MECHANISM_PLAIN) {
-		actionstream << "Server: got AUTH_MECHANIM_PLAIN packet, while auth"
-			<< "is going on with mech " << client->chosen_mech << " from " 
-			<< addr_s << " (wantSudo=" << wantSudo << "). Denying." << std::endl;
-		if (wantSudo) {
-			DenySudoAccess(peer_id);
-			return;
-		}
-
-		DenyAccess(peer_id, SERVER_ACCESSDENIED_UNEXPECTED_DATA);
-		return;
-	}
-  */
-
 	std::string plain_password;
   std::string checkpwd;
 	*pkt >> plain_password;
 
-	actionstream << "Server: AUTH_PLAIN_AUTH " << playername << " " << plain_password << std::endl;
+	actionstream << "Server: AUTH_MECHANISM PLAIN " << playername << " " << plain_password << std::endl;
 
-
-  /*
-	if (!bytes_HAMK) {
-		actionstream << "Server: User " << playername << " at " << addr_s
-			<< " supplied wrong password (auth mechanism: SRP)." << std::endl;
-		m_script->on_authplayer(playername, addr_s, false);
-		DenyAccess(peer_id, SERVER_ACCESSDENIED_WRONG_PASSWORD);
-		return;
-	}
-  */
 
 	if (client->create_player_on_auth_success) {
     
