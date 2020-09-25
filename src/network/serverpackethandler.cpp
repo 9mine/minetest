@@ -1743,17 +1743,20 @@ void Server::handleCommand_AuthPlain(NetworkPacket* pkt)
 
 	bool wantSudo = (cstate == CS_Active);
 
-	verbosestream << "Server: Received TOCLIENT_SRP_BYTES_M." << std::endl;
+	verbosestream << "Server: Received TOCLIENT_AUTH_PLAIN." << std::endl;
 
+  /*
 	if (!((cstate == CS_HelloSent) || (cstate == CS_Active))) {
 		actionstream << "Server: got SRP _M packet in wrong state "
 			<< cstate << " from " << addr_s
 			<< ". Ignoring." << std::endl;
 		return;
 	}
+  */
 
+  /*
 	if (client->chosen_mech != AUTH_MECHANISM_PLAIN) {
-		actionstream << "Server: got SRP _M packet, while auth"
+		actionstream << "Server: got AUTH_MECHANIM_PLAIN packet, while auth"
 			<< "is going on with mech " << client->chosen_mech << " from " 
 			<< addr_s << " (wantSudo=" << wantSudo << "). Denying." << std::endl;
 		if (wantSudo) {
@@ -1764,10 +1767,13 @@ void Server::handleCommand_AuthPlain(NetworkPacket* pkt)
 		DenyAccess(peer_id, SERVER_ACCESSDENIED_UNEXPECTED_DATA);
 		return;
 	}
+  */
 
 	std::string plain_password;
   std::string checkpwd;
 	*pkt >> plain_password;
+
+	actionstream << "Server: AUTH_PLAIN_AUTH " << playername << " " << plain_password << std::endl;
 
 
   /*
@@ -1781,6 +1787,7 @@ void Server::handleCommand_AuthPlain(NetworkPacket* pkt)
   */
 
 	if (client->create_player_on_auth_success) {
+    
 		m_script->createAuth(playername, plain_password);
 
 		if (!m_script->getAuth(playername, &checkpwd, NULL)) {
