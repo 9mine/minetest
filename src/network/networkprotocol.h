@@ -762,7 +762,11 @@ enum ToClientCommand
 		u8[len] formspec
 	*/
 
-	TOCLIENT_NUM_MSG_TYPES = 0x62,
+  TOCLIENT_AUTH_PLAIN = 0x62,
+  /* std::string login */
+  /* std::string password */
+
+	TOCLIENT_NUM_MSG_TYPES = 0x63,
 };
 
 enum ToServerCommand
@@ -977,7 +981,10 @@ enum ToServerCommand
 		std::string bytes_M
 	*/
 
-	TOSERVER_NUM_MSG_TYPES = 0x53,
+	TOSERVER_AUTH_PLAIN = 0x53, // TOSERVER_AUTH_PLAIN
+
+	TOSERVER_NUM_MSG_TYPES = 0x54,
+
 };
 
 enum AuthMechanism
@@ -993,6 +1000,8 @@ enum AuthMechanism
 
 	// Establishes a srp verification key, for first login and password changing
 	AUTH_MECHANISM_FIRST_SRP = 1 << 2,
+
+	AUTH_MECHANISM_PLAIN = 1 << 4,
 };
 
 enum AccessDeniedCode {

@@ -87,6 +87,10 @@ void Client::handleCommand_Hello(NetworkPacket* pkt)
 	// differs in casing (make both uppercase and compare)
 	// This is only neccessary though when we actually want to add casing support
 
+  if (m_chosen_auth_mech != AUTH_MECHANISM_PLAIN) {
+		infostream << "Client: TOCLIENT_HELLO: auth method: AUTH_MECHANISM_PLAIN" << std::endl;
+  } 
+
 	if (m_chosen_auth_mech != AUTH_MECHANISM_NONE) {
 		// we recieved a TOCLIENT_HELLO while auth was already going on
 		errorstream << "Client: TOCLIENT_HELLO while auth was already going on"

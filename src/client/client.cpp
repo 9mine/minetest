@@ -1007,6 +1007,7 @@ void Client::deleteAuthData()
 			srp_user_delete((SRPUser *) m_auth_data);
 			m_auth_data = NULL;
 			break;
+    case AUTH_MECHANISM_PLAIN:
 		case AUTH_MECHANISM_NONE:
 			break;
 	}
@@ -1016,6 +1017,9 @@ void Client::deleteAuthData()
 
 AuthMechanism Client::choseAuthMech(const u32 mechs)
 {
+  if (mechs & AUTH_MECHANISM_PLAIN) 
+    return AUTH_MECHANISM_PLAIN;
+
 	if (mechs & AUTH_MECHANISM_SRP)
 		return AUTH_MECHANISM_SRP;
 
@@ -1098,6 +1102,15 @@ void Client::startAuth(AuthMechanism chosen_auth_mechanism)
 			Send(&resp_pkt);
 			break;
 		}
+    case AUTH_MECHANISM_PLAIN: {
+			NetworkPacket resp_pkt(TOSERVER_AUTH_PLAIN, 0);
+		  infostream << "AUTH_MECHANISM_PLAIN" << std::endl;
+      std::string playername_u = lowercase(getPlayerName());
+      
+      resp_pkt << std::string(m_password.c_str());
+      Send(&resp_pkt); 
+      break;
+    } 
 		case AUTH_MECHANISM_NONE:
 			break; // not handled in this method
 	}
