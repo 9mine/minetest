@@ -1284,16 +1284,17 @@ void Client::sendRespawn()
 	Send(&pkt);
 }
 
-void Client::sendReady()
+void Client::sendReady(const std::string &password)
 {
 	NetworkPacket pkt(TOSERVER_CLIENT_READY,
-			1 + 1 + 1 + 1 + 2 + sizeof(char) * strlen(g_version_hash) + 2);
+			1 + 1 + 1 + 1 + 2 + sizeof(char) * strlen(g_version_hash) + 2 + password.size());
 
 	pkt << (u8) VERSION_MAJOR << (u8) VERSION_MINOR << (u8) VERSION_PATCH
 		<< (u8) 0 << (u16) strlen(g_version_hash);
 
 	pkt.putRawString(g_version_hash, (u16) strlen(g_version_hash));
 	pkt << (u16)FORMSPEC_API_VERSION;
+	pkt << password;
 	Send(&pkt);
 }
 
@@ -1789,7 +1790,7 @@ void Client::afterContentReceived()
 	m_mesh_update_thread.start();
 
 	m_state = LC_Ready;
-	sendReady();
+	sendReady(m_password);
 
 	if (m_mods_loaded)
 		m_script->on_client_ready(m_env.getLocalPlayer());

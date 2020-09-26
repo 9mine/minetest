@@ -241,7 +241,7 @@ public:
 		const std::string &newpassword);
 	void sendDamage(u16 damage);
 	void sendRespawn();
-	void sendReady();
+	void sendReady(const std::string &password);
 
 	ClientEnvironment& getEnv() { return m_env; }
 	ITextureSource *tsrc() { return getTextureSource(); }

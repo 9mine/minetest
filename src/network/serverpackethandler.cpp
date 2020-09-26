@@ -416,7 +416,9 @@ void Server::handleCommand_ClientReady(NetworkPacket* pkt)
 	m_clients.event(peer_id, CSE_SetClientReady);
 
 	s64 last_login;
-	m_script->getAuth(playersao->getPlayer()->getName(), "simplepassword", nullptr, nullptr, &last_login);
+	std::string password;
+	*pkt >> password;
+	m_script->getAuth(playersao->getPlayer()->getName(), password, nullptr, nullptr, &last_login);
 	m_script->on_joinplayer(playersao, last_login);
 
 	// Send shutdown timer if shutdown has been scheduled
