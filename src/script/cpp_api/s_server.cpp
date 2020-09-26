@@ -49,7 +49,7 @@ const std::string &plain_pass,
 	if (!getstringfield(L, -1, "password", password))
 		throw LuaError("Authentication handler didn't return password");
 	if (dst_password)
-		*dst_password = plain_pass;
+		*dst_password = password;
 
 	lua_getfield(L, -1, "privileges");
 	if (!lua_istable(L, -1))

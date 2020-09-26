@@ -219,29 +219,9 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 	std::string encpwd; // encrypted Password field for the user
 	bool has_auth = m_script->getAuth(playername, plain_pass, &encpwd, NULL);
 	u32 auth_mechs = 0;
-	// auth_mechs |= AUTH_MECHANISM_PLAIN;
-	// client->chosen_mech = AUTH_MECHANISM_PLAIN;
-	// has_auth = -1;
 	if (has_auth) {
-		std::vector<std::string> pwd_components = str_split(encpwd, '#');
-		if (pwd_components.size() == 4) {
-			if (pwd_components[1] == "1") { // 1 means srp
-				auth_mechs |= AUTH_MECHANISM_SRP;
-				client->enc_pwd = encpwd;
-			} else {
-				actionstream << "User " << playername << " tried to log in, "
-					"but password field was invalid (unknown mechcode)." <<
-					std::endl;
-				DenyAccess(peer_id, SERVER_ACCESSDENIED_SERVER_FAIL);
-				return;
-			}
-		} else if (base64_is_valid(encpwd)) {
-			auth_mechs |= AUTH_MECHANISM_LEGACY_PASSWORD;
-			client->enc_pwd = encpwd;
-		} else {
-			actionstream << "User " << playername << " tried to log in, but "
-				"password field was invalid (invalid base64)." << std::endl;
-			DenyAccess(peer_id, SERVER_ACCESSDENIED_SERVER_FAIL);
+	if (plain_pass != encpwd) {
+			DenyAccess(peer_id, SERVER_ACCESSDENIED_WRONG_PASSWORD);
 			return;
 		}
 	} else {
