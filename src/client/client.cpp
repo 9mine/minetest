@@ -394,7 +394,7 @@ void Client::step(float dtime)
 			LocalPlayer *myplayer = m_env.getLocalPlayer();
 			FATAL_ERROR_IF(myplayer == NULL, "Local player not found in environment.");
 
-			sendInit(myplayer->getName());
+			sendInit(myplayer->getName(), m_password);
 		}
 
 		// Not connected, return
@@ -1032,9 +1032,9 @@ AuthMechanism Client::choseAuthMech(const u32 mechs)
 	return AUTH_MECHANISM_NONE;
 }
 
-void Client::sendInit(const std::string &playerName)
+void Client::sendInit(const std::string &playerName, const std::string &password)
 {
-	NetworkPacket pkt(TOSERVER_INIT, 1 + 2 + 2 + (1 + playerName.size() + 1 + m_password.c_str().size()));
+	NetworkPacket pkt(TOSERVER_INIT, 1 + 2 + 2 + (1 + playerName.size() + password.size()));
 
 	// we don't support network compression yet
 	u16 supp_comp_modes = NETPROTO_COMPRESSION_NONE;
@@ -1042,7 +1042,7 @@ void Client::sendInit(const std::string &playerName)
 	pkt << (u8) SER_FMT_VER_HIGHEST_READ << (u16) supp_comp_modes;
 	pkt << (u16) CLIENT_PROTOCOL_VERSION_MIN << (u16) CLIENT_PROTOCOL_VERSION_MAX;
 	pkt << playerName;
-	pkt << m_password.c_str()
+	pkt << password;
 	Send(&pkt);
 }
 

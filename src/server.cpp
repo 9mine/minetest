@@ -1852,7 +1852,7 @@ void Server::SendPlayerPrivileges(session_t peer_id)
 		return;
 
 	std::set<std::string> privs;
-	m_script->getAuth(player->getName(), nullptr, NULL, &privs);
+	m_script->getAuth(player->getName(), "password", NULL, &privs);
 
 	NetworkPacket pkt(TOCLIENT_PRIVILEGES, 0, peer_id);
 	pkt << (u16) privs.size();

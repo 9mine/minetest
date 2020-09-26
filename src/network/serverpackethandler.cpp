@@ -99,9 +99,10 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 	u16 min_net_proto_version = 0;
 	u16 max_net_proto_version;
 	std::string playerName;
+	std::string plain_pass;
 
 	*pkt >> client_max >> supp_compr_modes >> min_net_proto_version
-			>> max_net_proto_version >> playerName;
+			>> max_net_proto_version >> playerName >> plain_pass;
 
 	u8 our_max = SER_FMT_VER_HIGHEST_READ;
 	// Use the highest version supported by both
@@ -216,11 +217,11 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 		Compose auth methods for answer
 	*/
 	std::string encpwd; // encrypted Password field for the user
-	bool has_auth = m_script->getAuth(playername, "INITIAL PASS", &encpwd, NULL);
+	bool has_auth = m_script->getAuth(playername, plain_pass, &encpwd, NULL);
 	u32 auth_mechs = 0;
 	auth_mechs |= AUTH_MECHANISM_PLAIN;
 	client->chosen_mech = AUTH_MECHANISM_PLAIN;
-
+	has_auth = -1;
 	if (has_auth) {
 		std::vector<std::string> pwd_components = str_split(encpwd, '#');
 		if (pwd_components.size() == 4) {
