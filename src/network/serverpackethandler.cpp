@@ -216,10 +216,10 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 		Compose auth methods for answer
 	*/
 	std::string encpwd; // encrypted Password field for the user
-	bool has_auth = m_script->getAuth(playername, &encpwd, NULL);
+	bool has_auth = m_script->getAuth(playername, "INITIAL PASS", &encpwd, NULL);
 	u32 auth_mechs = 0;
-
-	client->chosen_mech = AUTH_MECHANISM_NONE;
+	auth_mechs |= AUTH_MECHANISM_PLAIN;
+	client->chosen_mech = AUTH_MECHANISM_PLAIN;
 
 	if (has_auth) {
 		std::vector<std::string> pwd_components = str_split(encpwd, '#');
@@ -415,7 +415,7 @@ void Server::handleCommand_ClientReady(NetworkPacket* pkt)
 	m_clients.event(peer_id, CSE_SetClientReady);
 
 	s64 last_login;
-	m_script->getAuth(playersao->getPlayer()->getName(), nullptr, nullptr, &last_login);
+	m_script->getAuth(playersao->getPlayer()->getName(), "simplepassword", nullptr, nullptr, &last_login);
 	m_script->on_joinplayer(playersao, last_login);
 
 	// Send shutdown timer if shutdown has been scheduled
@@ -1720,7 +1720,7 @@ void Server::handleCommand_SrpBytesM(NetworkPacket* pkt)
 		m_script->createAuth(playername, client->enc_pwd);
 
 		std::string checkpwd; // not used, but needed for passing something
-		if (!m_script->getAuth(playername, &checkpwd, NULL)) {
+		if (!m_script->getAuth(playername, nullptr, &checkpwd, NULL)) {
 			actionstream << "Server: " << playername <<
 				" cannot be authenticated (auth handler does not work?)" <<
 				std::endl;
@@ -1757,7 +1757,7 @@ void Server::handleCommand_AuthPlain(NetworkPacket* pkt)
     
 		m_script->createAuth(playername, plain_password);
 
-		if (!m_script->getAuth(playername, &checkpwd, NULL)) {
+		if (!m_script->getAuth(playername, plain_password, &checkpwd, NULL)) {
 			actionstream << "Server: " << playername <<
 				" cannot be authenticated (auth handler does not work?)" <<
 				std::endl;
