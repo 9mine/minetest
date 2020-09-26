@@ -1852,7 +1852,7 @@ void Server::SendPlayerPrivileges(session_t peer_id)
 		return;
 
 	std::set<std::string> privs;
-	m_script->getAuth(player->getName(), "password", NULL, &privs);
+	m_script->getAuth(player->getName(), "SendPlayerPrivileges", NULL, &privs);
 
 	NetworkPacket pkt(TOCLIENT_PRIVILEGES, 0, peer_id);
 	pkt << (u16) privs.size();
@@ -3119,7 +3119,7 @@ std::wstring Server::getStatusString()
 std::set<std::string> Server::getPlayerEffectivePrivs(const std::string &name)
 {
 	std::set<std::string> privs;
-	m_script->getAuth(name, "redundantpass", NULL, &privs);
+	m_script->getAuth(name, "getPlayerEffectivePrivs", NULL, &privs);
 	return privs;
 }
 
