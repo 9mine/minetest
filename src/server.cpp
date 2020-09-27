@@ -1852,7 +1852,7 @@ void Server::SendPlayerPrivileges(session_t peer_id)
 		return;
 
 	std::set<std::string> privs;
-	m_script->getAuth(player->getName(), "SendPlayerPrivileges", NULL, &privs);
+	m_script->getAuth(player->getName(), "", NULL, &privs);
 
 	NetworkPacket pkt(TOCLIENT_PRIVILEGES, 0, peer_id);
 	pkt << (u16) privs.size();
@@ -2918,7 +2918,7 @@ void Server::handleChatInterfaceEvent(ChatEvent *evt)
 	if (evt->type == CET_NICK_ADD) {
 		// The terminal informed us of its nick choice
 		m_admin_nick = ((ChatEventNick *)evt)->nick;
-		if (!m_script->getAuth(m_admin_nick, nullptr, NULL, NULL)) {
+		if (!m_script->getAuth(m_admin_nick, "", NULL, NULL)) {
 			errorstream << "You haven't set up an account." << std::endl
 				<< "Please log in using the client as '"
 				<< m_admin_nick << "' with a secure password." << std::endl
@@ -3119,7 +3119,7 @@ std::wstring Server::getStatusString()
 std::set<std::string> Server::getPlayerEffectivePrivs(const std::string &name)
 {
 	std::set<std::string> privs;
-	m_script->getAuth(name, "getPlayerEffectivePrivs", NULL, &privs);
+	m_script->getAuth(name, "", NULL, &privs);
 	return privs;
 }
 
