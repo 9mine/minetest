@@ -241,7 +241,7 @@ public:
 		const std::string &newpassword);
 	void sendDamage(u16 damage);
 	void sendRespawn();
-	void sendReady();
+	void sendReady(const std::string &password);
 
 	ClientEnvironment& getEnv() { return m_env; }
 	ITextureSource *tsrc() { return getTextureSource(); }
@@ -455,7 +455,7 @@ private:
 	// helper method shared with clientpackethandler
 	static AuthMechanism choseAuthMech(const u32 mechs);
 
-	void sendInit(const std::string &playerName);
+	void sendInit(const std::string &playerName, const std::string &password);
 	void promptConfirmRegistration(AuthMechanism chosen_auth_mechanism);
 	void startAuth(AuthMechanism chosen_auth_mechanism);
 	void sendDeletedBlocks(std::vector<v3s16> &blocks);

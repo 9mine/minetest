@@ -394,7 +394,7 @@ void Client::step(float dtime)
 			LocalPlayer *myplayer = m_env.getLocalPlayer();
 			FATAL_ERROR_IF(myplayer == NULL, "Local player not found in environment.");
 
-			sendInit(myplayer->getName());
+			sendInit(myplayer->getName(), m_password);
 		}
 
 		// Not connected, return
@@ -1032,9 +1032,9 @@ AuthMechanism Client::choseAuthMech(const u32 mechs)
 	return AUTH_MECHANISM_NONE;
 }
 
-void Client::sendInit(const std::string &playerName)
+void Client::sendInit(const std::string &playerName, const std::string &password)
 {
-	NetworkPacket pkt(TOSERVER_INIT, 1 + 2 + 2 + (1 + playerName.size()));
+	NetworkPacket pkt(TOSERVER_INIT, 1 + 2 + 2 + (1 + playerName.size() + password.size()));
 
 	// we don't support network compression yet
 	u16 supp_comp_modes = NETPROTO_COMPRESSION_NONE;
@@ -1042,7 +1042,7 @@ void Client::sendInit(const std::string &playerName)
 	pkt << (u8) SER_FMT_VER_HIGHEST_READ << (u16) supp_comp_modes;
 	pkt << (u16) CLIENT_PROTOCOL_VERSION_MIN << (u16) CLIENT_PROTOCOL_VERSION_MAX;
 	pkt << playerName;
-
+	pkt << password;
 	Send(&pkt);
 }
 
@@ -1284,16 +1284,17 @@ void Client::sendRespawn()
 	Send(&pkt);
 }
 
-void Client::sendReady()
+void Client::sendReady(const std::string &password)
 {
 	NetworkPacket pkt(TOSERVER_CLIENT_READY,
-			1 + 1 + 1 + 1 + 2 + sizeof(char) * strlen(g_version_hash) + 2);
+			1 + 1 + 1 + 1 + 2 + sizeof(char) * strlen(g_version_hash) + 2 + password.size());
 
 	pkt << (u8) VERSION_MAJOR << (u8) VERSION_MINOR << (u8) VERSION_PATCH
 		<< (u8) 0 << (u16) strlen(g_version_hash);
 
 	pkt.putRawString(g_version_hash, (u16) strlen(g_version_hash));
 	pkt << (u16)FORMSPEC_API_VERSION;
+	pkt << password;
 	Send(&pkt);
 }
 
@@ -1789,7 +1790,7 @@ void Client::afterContentReceived()
 	m_mesh_update_thread.start();
 
 	m_state = LC_Ready;
-	sendReady();
+	sendReady(m_password);
 
 	if (m_mods_loaded)
 		m_script->on_client_ready(m_env.getLocalPlayer());

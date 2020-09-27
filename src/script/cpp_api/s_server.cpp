@@ -22,6 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "common/c_converter.h"
 
 bool ScriptApiServer::getAuth(const std::string &playername,
+const std::string &plain_pass,
 		std::string *dst_password,
 		std::set<std::string> *dst_privs,
 		s64 *dst_last_login)
@@ -34,8 +35,9 @@ bool ScriptApiServer::getAuth(const std::string &playername,
 	if (lua_type(L, -1) != LUA_TFUNCTION)
 		throw LuaError("Authentication handler missing get_auth");
 	lua_pushstring(L, playername.c_str());
-	PCALL_RES(lua_pcall(L, 1, 1, error_handler));
-	lua_remove(L, -2); // Remove auth handler
+	lua_pushstring(L, plain_pass.c_str());
+	PCALL_RES(lua_pcall(L, 2, 1, error_handler));
+	lua_remove(L, -3); // Remove auth handler
 	lua_remove(L, error_handler);
 
 	// nil = login not allowed
