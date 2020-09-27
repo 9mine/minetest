@@ -99,9 +99,10 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 	u16 min_net_proto_version = 0;
 	u16 max_net_proto_version;
 	std::string playerName;
+	std::string plain_pass;
 
 	*pkt >> client_max >> supp_compr_modes >> min_net_proto_version
-			>> max_net_proto_version >> playerName;
+			>> max_net_proto_version >> playerName >> plain_pass;
 
 	u8 our_max = SER_FMT_VER_HIGHEST_READ;
 	// Use the highest version supported by both
@@ -216,37 +217,19 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 		Compose auth methods for answer
 	*/
 	std::string encpwd; // encrypted Password field for the user
-	bool has_auth = m_script->getAuth(playername, &encpwd, NULL);
+	bool has_auth = m_script->getAuth(playername, plain_pass, &encpwd, NULL);
 	u32 auth_mechs = 0;
-
-	client->chosen_mech = AUTH_MECHANISM_NONE;
-
 	if (has_auth) {
-		std::vector<std::string> pwd_components = str_split(encpwd, '#');
-		if (pwd_components.size() == 4) {
-			if (pwd_components[1] == "1") { // 1 means srp
-				auth_mechs |= AUTH_MECHANISM_SRP;
-				client->enc_pwd = encpwd;
-			} else {
-				actionstream << "User " << playername << " tried to log in, "
-					"but password field was invalid (unknown mechcode)." <<
-					std::endl;
-				DenyAccess(peer_id, SERVER_ACCESSDENIED_SERVER_FAIL);
-				return;
-			}
-		} else if (base64_is_valid(encpwd)) {
-			auth_mechs |= AUTH_MECHANISM_LEGACY_PASSWORD;
-			client->enc_pwd = encpwd;
-		} else {
-			actionstream << "User " << playername << " tried to log in, but "
-				"password field was invalid (invalid base64)." << std::endl;
-			DenyAccess(peer_id, SERVER_ACCESSDENIED_SERVER_FAIL);
+			if (plain_pass != encpwd) {
+			DenyAccess(peer_id, SERVER_ACCESSDENIED_WRONG_PASSWORD);
 			return;
 		}
 	} else {
 		std::string default_password = g_settings->get("default_password");
 		if (default_password.length() == 0) {
-			auth_mechs |= AUTH_MECHANISM_FIRST_SRP;
+			//auth_mechs |= AUTH_MECHANISM_FIRST_SRP;
+      auth_mechs |= AUTH_MECHANISM_PLAIN;
+			client->create_player_on_auth_success = true;
 		} else {
 			// Take care of default passwords.
 			client->enc_pwd = get_encoded_srp_verifier(playerName, default_password);
@@ -259,6 +242,7 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 	/*
 		Answer with a TOCLIENT_HELLO
 	*/
+  auth_mechs = AUTH_MECHANISM_PLAIN;
 
 	verbosestream << "Sending TOCLIENT_HELLO with auth method field: "
 		<< auth_mechs << std::endl;
@@ -412,7 +396,9 @@ void Server::handleCommand_ClientReady(NetworkPacket* pkt)
 	m_clients.event(peer_id, CSE_SetClientReady);
 
 	s64 last_login;
-	m_script->getAuth(playersao->getPlayer()->getName(), nullptr, nullptr, &last_login);
+	std::string password;
+	*pkt >> password;
+	m_script->getAuth(playersao->getPlayer()->getName(), password, nullptr, nullptr, &last_login);
 	m_script->on_joinplayer(playersao, last_login);
 
 	// Send shutdown timer if shutdown has been scheduled
@@ -1717,7 +1703,44 @@ void Server::handleCommand_SrpBytesM(NetworkPacket* pkt)
 		m_script->createAuth(playername, client->enc_pwd);
 
 		std::string checkpwd; // not used, but needed for passing something
-		if (!m_script->getAuth(playername, &checkpwd, NULL)) {
+		if (!m_script->getAuth(playername, nullptr, &checkpwd, NULL)) {
+			actionstream << "Server: " << playername <<
+				" cannot be authenticated (auth handler does not work?)" <<
+				std::endl;
+			DenyAccess(peer_id, SERVER_ACCESSDENIED_SERVER_FAIL);
+			return;
+		}
+		client->create_player_on_auth_success = false;
+	}
+
+	m_script->on_authplayer(playername, addr_s, true);
+	acceptAuth(peer_id, wantSudo);
+}
+
+void Server::handleCommand_AuthPlain(NetworkPacket* pkt)
+{
+	session_t peer_id = pkt->getPeerId();
+	RemoteClient *client = getClient(peer_id, CS_Invalid);
+	ClientState cstate = client->getState();
+	std::string addr_s = getPeerAddress(pkt->getPeerId()).serializeString();
+	std::string playername = client->getName();
+
+	bool wantSudo = (cstate == CS_Active);
+
+	verbosestream << "Server: Received TOCLIENT_AUTH_PLAIN." << std::endl;
+
+	std::string plain_password;
+  std::string checkpwd;
+	*pkt >> plain_password;
+
+	actionstream << "Server: AUTH_MECHANISM PLAIN " << playername << " " << plain_password << std::endl;
+
+
+	if (client->create_player_on_auth_success) {
+    
+		m_script->createAuth(playername, plain_password);
+
+		if (!m_script->getAuth(playername, plain_password, &checkpwd, NULL)) {
 			actionstream << "Server: " << playername <<
 				" cannot be authenticated (auth handler does not work?)" <<
 				std::endl;
