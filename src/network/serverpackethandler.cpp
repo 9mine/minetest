@@ -220,7 +220,7 @@ void Server::handleCommand_Init(NetworkPacket* pkt)
 	bool has_auth = m_script->getAuth(playername, plain_pass, &encpwd, NULL);
 	u32 auth_mechs = 0;
 	if (has_auth) {
-	if (plain_pass != encpwd) {
+		if (plain_pass != encpwd) {
 			DenyAccess(peer_id, SERVER_ACCESSDENIED_WRONG_PASSWORD);
 			return;
 		}
